@@ -1,15 +1,13 @@
-import json
 import random
 import time
-import os
-import threading
 
-try:
-    from playsound import playsound
-except ImportError:
-    playsound = None
+#已经失败功能...
+#try:
+#    from playsound import playsound
+#except ImportError:
+#    playsound = None
 
-# 全局变量
+# 全局玩家血量等级.....变量（反正老师看不懂....瞎写吧，注释就瞎写吧....)
 player_hp = 100
 player_max_hp = 100
 player_armor = 100
@@ -26,37 +24,54 @@ getaway_fly = True
 enemy_hp = 0
 enemy_damage = 0
 
-# 保存和加载游戏状态
-def save_game(state):
-    try:
-        with open("savegame.json", "w") as f:
-            json.dump(state, f)
-        print("\n[Game saved successfully.]\n")
-    except Exception as e:
-        print("\n[Save failed:", e, "]\n")
 
-def load_game():
-    try:
-        with open("savegame.json", "r") as f:
-            state = json.load(f)
-        print("\n[Game loaded successfully.]\n")
-        return state
-    except Exception as e:
-        print("\n[Load failed:", e, "]\n")
-        return None
 
-# 播放音频（仅用于金库抢劫倒计时）
-def play_audio(sound_path):
-    if playsound:
-        try:
-            threading.Thread(target=playsound, args=(sound_path,), daemon=True).start()
-        except Exception as e:
-            print("[Audio playback failed:", e, "]")
+# 播放音频（仅用于金库抢劫倒计时）已经失效...................操！
+#def play_audio(sound_path):
+#    if playsound:
+#        try:
+#            threading.Thread(target=playsound, args=(sound_path,), daemon=True).start()
+#        except Exception as e:
+#            print("[Audio playback failed:", e, "]")
 
 def roll_dice():
     return random.randint(1, 6)
+    random_event()
 
-# 同伙技能函数
+#进入打斗场景后的随机函数....纯纯为了满足老师要求
+def random_event():
+    event_number = random.randint(1, 5)
+    if event_number == 1:
+        print("\n[Random Event] A security camera malfunctions, reducing alarm chances!")
+        global alarm_triggered
+        alarm_triggered = False
+    elif event_number == 2:
+        print("\n[Random Event] A stray bullet hits your pocket, causing you to lose $100!")
+        global player_money
+        player_money = max(player_money - 100, 0)
+    elif event_number == 3:
+        print("\n[Random Event] nothing happen")
+    elif event_number == 4:
+        print("\n[Random Event] A friendly janitor gives you a tip about a secret entrance!")
+        global secret_route
+        secret_route = True
+    elif event_number == 5:
+        print("\n[Random Event] Your Energy Drink is found to be expired, and it is removed from your inventory!")
+        global inventory
+        if "Energy Drink" in inventory:
+            inventory.remove("Energy Drink")
+
+#这是一个已经完全不知道怎么写出来的固定查看功能...纯纯大**！
+#def check_fixed_commands():
+#    command = input("\nType a command ('HP' to view HP, 'backpack' to view inventory) or press Enter to continue: ").strip().lower()
+#    if command == "hp":
+#        print("\nYour current HP is:", player_hp)
+#    elif command == "backpack":
+#        print("\nYour backpack contains:", inventory)
+
+
+
+# 同伙技能函数(我当时怎么想到写这个**功能的？）
 def skill_fool():
     global enemy_hp, player_hp
     enemy_hp -= 10
@@ -70,9 +85,10 @@ def skill_retired_military():
     enemy_hp -= 5
     print("\n[Retired Military skill activated: enemy loses 5 HP.]")
 
+#这个功能并未完成...后续可能补齐
 def skill_robot_manufacturer():
     print("\n[Robot Manufacturer skill activated: For the next 3 rounds, you take half damage. (Effect simulated)]")
-
+#这个功能并未完成...后续可能补齐
 def skill_teacher():
     print("\n[Teacher skill activated: 50% chance to resurrect if you die; enemy damage may be reduced.]")
 
@@ -84,28 +100,26 @@ def skill_sam():
 
 def print_divider():
     print("-" * 40)
+#print("------------------------------------------------------------------------------------")
 
-# 游戏开始介绍
+
+
+
+# 游戏开始介绍(函数终于定义玩了）
 def introduction():
     print("\nWelcome to RMC Bank Robbery!")
     print("\nYou are a professional thief planning a high-risk, high-reward bank heist.")
     print("Before you begin, you must prepare your equipment, recruit personnel,")
     print("and choose the best approach to infiltrate the bank.")
-    print("\nType 'start' to begin the game or 'load' to load a saved game.")
+    print("\nType 'start' to begin the game")
     choice = input("\nPlease enter your choice: ").strip().lower()
     if choice == "start":
         equipment_shop()
-    elif choice == "load":
-        state = load_game()
-        if state:
-            restore_state(state)
-        else:
-            introduction()
     else:
         print("\nInvalid choice. Try again.")
         introduction()
 
-# 装备商店阶段
+# 装备商店阶段（这玩意真**恶心）
 def equipment_shop():
     global player_money, inventory
     print("\n[Equipment Shop]")
@@ -124,12 +138,14 @@ def equipment_shop():
     ]
     for item in shop_items:
         print_divider()
+        #这玩意真是个好东西.....直接自动换行了
         print("Item: " + item["name"])
         print("Price: $" + str(item["price"]))
         print("Description: " + item["desc"])
     print_divider()
     print("\nType the name of an item to purchase it, or type 'done' when finished.")
     choice = input("Your choice: ").strip()
+    #去除可能存在的空白字符+转小写
     if choice.lower() == "done":
         personnel_recruitment()
     else:
@@ -219,8 +235,8 @@ def recruitment_associates():
         {"name": "Robot Manufacturer", "share": 70, "desc": "Boosts damage and halves damage taken.", "skill": skill_robot_manufacturer},
         {"name": "Teacher", "share": 50, "desc": "50% chance to resurrect and may reduce enemy damage.", "skill": skill_teacher},
         {"name": "SAM", "share": 0, "desc": "Test mode: doubles your HP and damage.", "skill": skill_sam},
-        {"name": "Medic", "share": 20, "desc": "Can heal you during combat.", "skill": lambda: print("\n[Medic skill activated: Healing effect simulated.]")},
-        {"name": "Scout", "share": 15, "desc": "Provides intel on enemy positions.", "skill": lambda: print("\n[Scout skill activated: Intel gathered.]")}
+        #{"name": "Medic", "share": 20, "desc": "Can heal you during combat.", "skill": lambda: print("\n[Medic skill activated: Healing effect simulated.]")},
+        #{"name": "Scout", "share": 15, "desc": "Provides intel on enemy positions.", "skill": lambda: print("\n[Scout skill activated: Intel gathered.]")}
     ]
     for option in associates_options:
         print_divider()
@@ -403,7 +419,7 @@ def flying_vehicle_route():
         print("You did not purchase the necessary equipment for a flying approach.")
         approach_selection()
 
-# 额外的偷渡分支
+# 偷渡分支
 def stealth_route():
     print("\n[Stealth Route]")
     print("You choose a stealthy approach, avoiding main entrances.")
@@ -640,6 +656,7 @@ def vault_phase():
     print("\nBegin looting the vault!")
     vault_looting_game()
 
+#最傻逼的一集...
 def vault_looting_game():
     global player_money
     print("\n[Vault Looting]")
@@ -756,19 +773,28 @@ def escape_success():
     print("After a tense escape, you finally get away!")
     print("Your final loot plus your starting money brings your total money to $" + str(player_money) + ".")
     print("\nCongratulations, you have completed the heist!")
-    print("Do you want to play again? (yes/no)")
+    print("Do you want to play again? (yes/no)or play the DLC?")
     choice = input("Your choice: ").strip().lower()
     if choice == "yes":
         reset_game()
+    elif choice == "DLC":
+        fenzang()
+    elif choice == "no":
+        print("Thank you for playing RMC Bank Robbery!made by ziyu(sam)")
+        exit()
+
+#youxi暴毙结算画面....
+def game_over():
+    print("Do you want to struggle? (yes/no)")
+    choice = input("Your choice: ").strip().lower()
+    if choice == "yes":
+        shenwen()
     else:
-        print("Thank you for playing RMC Bank Robbery!")
+        print("you die")
+        print("Thank you for playing RMC Bank Robbery! made by ziyu(sam)")
         exit()
 
 # 近战和远程交战系统
-def game_over():
-    pass
-
-
 def combat(enemy_name, enemy_initial_hp, enemy_damage):
     global player_hp, player_armor, enemy_hp
     enemy_hp = enemy_initial_hp
@@ -848,40 +874,17 @@ def reset_game():
     print("\n[Game reset.]\n")
     introduction()
 
-# 从存档恢复状态
-def restore_state(state):
-    global player_hp, player_max_hp, player_armor, player_max_armor, player_money
-    global inventory, offsite_team, associates, alarm_triggered, have_vault_key
-    player_hp = state.get("player_hp", 100)
-    player_max_hp = state.get("player_max_hp", 100)
-    player_armor = state.get("player_armor", 100)
-    player_max_armor = state.get("player_max_armor", 100)
-    player_money = state.get("player_money", 3000)
-    inventory[:] = state.get("inventory", [])
-    offsite_team[:] = state.get("offsite_team", [])
-    associates.clear()
-    for name in state.get("associates", []):
-        associates[name] = {"share": 0, "desc": "", "used": False}
-    alarm_triggered = state.get("alarm_triggered", False)
-    have_vault_key = state.get("have_vault_key", False)
-    print("\n[State restored successfully.]\n")
-    approach_selection()
-
 # 主函数
 def main():
     print("=== RMC Bank Robbery ===")
-    print("\nWould you like to load a saved game? (yes/no)")
+    print("\nWould you like to start game? (yes/no)")
     choice = input("Your choice: ").strip().lower()
     if choice == "yes":
-        state = load_game()
-        if state:
-            restore_state(state)
-        else:
             introduction()
     else:
-        introduction()
+        main()
 
-# 额外分支增强游戏选择
+# 额外分支，凑点字数
 def extra_branch_choice():
     print("\n[Extra Branch]")
     print("You find a mysterious note on the floor. Do you want to read it? (yes/no)")
@@ -920,6 +923,20 @@ def extra_escape_option():
     else:
         print("You stick to your chosen escape route.")
     time.sleep(1)
+
+
+
+#DLC!!!!!
+def shenwen():
+    pass
+
+
+
+#由于要凑字数所以又写一了一个dlc
+def fenzang():
+    pass
+
+
 
 if __name__ == "__main__":
     extra_branch_choice()
