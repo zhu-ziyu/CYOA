@@ -100,11 +100,3 @@ This project does not specify a license yet. For commercial or educational usage
 感谢你的关注与使用，祝你在这场惊险刺激的银行抢劫冒险中玩得愉快！
 
 (English and Chinese descriptions by ChatGPT.)
-
-yaml
-复制
-编辑
-
----
-
-你可以将此内容粘贴到 `README.md` 中，并根据需要修改标题、功能描述、作者信息等细节。祝项目顺利!
